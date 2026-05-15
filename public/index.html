@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bakos emlékverseny</title>
+  <link rel="stylesheet" href="/bakos/styles.css">
+</head>
+<body>
+  <main class="app-shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">Kubernetes társasjáték</p>
+        <h1>Bakos emlékverseny</h1>
+        <p class="lead">Kamu definíciók, valódi idegen szavak és sok nevetés — papírkeverés nélkül.</p>
+      </div>
+      <div class="connection-pill" id="connectionStatus">Kapcsolódás...</div>
+    </header>
+
+    <section id="alertBox" class="alert hidden"></section>
+    <section id="app"></section>
+  </main>
+
+  <script src="/bakos/socket.io/socket.io.js"></script>
+  <script src="/bakos/client.js"></script>
+</body>
+</html>
