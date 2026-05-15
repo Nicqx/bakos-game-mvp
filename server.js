@@ -13,7 +13,7 @@ const BASE_PATH = normalizeBasePath(process.env.BASE_PATH || '/bakos');
 const REDIS_URL = process.env.REDIS_URL || 'redis://redis-service:6379';
 const SESSION_TIMEOUT = Number(process.env.SESSION_TIMEOUT || 10800);
 const MIN_PLAYERS = Number(process.env.MIN_PLAYERS || 3);
-const MAX_PLAYERS = Number(process.env.MAX_PLAYERS || 12);
+const MAX_PLAYERS = Number(process.env.MAX_PLAYERS || 20);
 const ENABLE_SOCKET_REDIS_ADAPTER = String(process.env.ENABLE_SOCKET_REDIS_ADAPTER || 'false').toLowerCase() === 'true';
 
 const PHASES = Object.freeze({
@@ -80,8 +80,21 @@ async function getSession(sessionId) {
 async function saveSession(session, refreshTtl = false) {
   session.updatedAt = now();
   const key = sessionKey(session.sessionId);
-  await redis.set(key, JSON.stringify(session));
+
   if (refreshTtl) {
+    await redis.set(key, JSON.stringify(session), { EX: SESSION_TIMEOUT });
+    return;
+  }
+
+  // Redis SET alapból törli a korábbi TTL-t, ezért mentés előtt lekérjük,
+  // majd visszaállítjuk. Így a session lejárati ideje tényleg visszaszámol,
+  // és csak az „Idő hosszabbítása” gomb indítja újra 3 órára.
+  const currentTtl = await redis.ttl(key);
+  await redis.set(key, JSON.stringify(session));
+  if (currentTtl > 0) {
+    await redis.expire(key, currentTtl);
+  } else {
+    // Régebbi, TTL nélküli állapotból is biztonságosan helyreállunk.
     await redis.expire(key, SESSION_TIMEOUT);
   }
 }

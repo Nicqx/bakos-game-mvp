@@ -35,7 +35,7 @@ spec:
             - name: MIN_PLAYERS
               value: "3"
             - name: MAX_PLAYERS
-              value: "12"
+              value: "20"
             # MVP-ben 1 replica van. Ha később több pod lesz, állítsd true-ra.
             - name: ENABLE_SOCKET_REDIS_ADAPTER
               value: "false"

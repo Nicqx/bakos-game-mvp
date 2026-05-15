@@ -12,6 +12,7 @@
   let session = null;
   let playerId = null;
   let pending = false;
+  let sessionExpiresAtMs = null;
 
   function escapeHtml(value) {
     return String(value || '')
@@ -96,12 +97,27 @@
     return session.players.find((player) => player.id === session.currentRoundLeaderId) || null;
   }
 
+  function rememberSessionExpiry(nextSession) {
+    if (nextSession && typeof nextSession.expiresInSeconds === 'number' && nextSession.expiresInSeconds > 0) {
+      sessionExpiresAtMs = Date.now() + (nextSession.expiresInSeconds * 1000);
+    } else {
+      sessionExpiresAtMs = null;
+    }
+  }
+
+  function currentTtlSeconds() {
+    if (!sessionExpiresAtMs) return null;
+    return Math.max(0, Math.ceil((sessionExpiresAtMs - Date.now()) / 1000));
+  }
+
   function formatTtl(seconds) {
-    if (!seconds) return 'ismeretlen';
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
+    if (seconds === null || seconds === undefined) return 'ismeretlen';
+    const safeSeconds = Math.max(0, Number(seconds) || 0);
+    if (safeSeconds <= 0) return 'kevesebb mint 1 perc';
+    const h = Math.floor(safeSeconds / 3600);
+    const m = Math.floor((safeSeconds % 3600) / 60);
     if (h > 0) return `${h} óra ${m} perc`;
-    return `${m} perc`;
+    return `${Math.max(1, m)} perc`;
   }
 
   function render() {
@@ -189,7 +205,7 @@
         <p><span class="session-code">${escapeHtml(session.sessionId)}</span></p>
         <div class="kpi-row">
           <span class="kpi">Kör: ${session.roundNumber || 0}</span>
-          <span class="kpi">Lejárat: ${formatTtl(session.expiresInSeconds)}</span>
+          <span class="kpi">Hátralévő idő: <span id="ttlValue">${formatTtl(currentTtlSeconds())}</span></span>
         </div>
         <div class="row-actions">
           <button class="secondary" id="extendBtn">Idő hosszabbítása</button>
@@ -599,6 +615,7 @@
     if (!nextSession.viewerActive) {
       clearLocalSession();
       session = null;
+      sessionExpiresAtMs = null;
       playerId = null;
       goHome();
       setAlert('Kiléptél vagy eltávolítottak ebből a játékból.');
@@ -607,6 +624,7 @@
     }
 
     session = nextSession;
+    rememberSessionExpiry(nextSession);
     playerId = nextSession.viewerPlayerId;
     goToSession(nextSession.sessionId);
     render();
@@ -619,6 +637,13 @@
   socket.on('sessionExtended', () => {
     setAlert('A session ideje újra 3 órára lett hosszabbítva.');
   });
+
+  window.setInterval(() => {
+    const ttlValue = document.getElementById('ttlValue');
+    if (ttlValue) {
+      ttlValue.textContent = formatTtl(currentTtlSeconds());
+    }
+  }, 15000);
 
   render();
 })();

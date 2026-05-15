@@ -3,7 +3,13 @@ FROM node:20-alpine
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm ci --omit=dev
+# Use npm ci when a lockfile exists; otherwise fall back to npm install.
+# This keeps the image buildable from the MVP zip, which intentionally did not include package-lock.json.
+RUN if [ -f package-lock.json ]; then \
+      npm ci --omit=dev; \
+    else \
+      npm install --omit=dev --no-audit --no-fund; \
+    fi
 
 COPY . .
 

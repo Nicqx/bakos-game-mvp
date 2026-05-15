@@ -94,7 +94,7 @@ A `landing-page-snippet.html` fájlban van egy egyszerű beilleszthető blokk:
 | `REDIS_URL` | `redis://redis-service:6379` | Redis kapcsolat |
 | `SESSION_TIMEOUT` | `10800` | Session TTL másodpercben |
 | `MIN_PLAYERS` | `3` | Minimum aktív játékosszám |
-| `MAX_PLAYERS` | `12` | Maximum aktív játékosszám |
+| `MAX_PLAYERS` | `20` | Maximum aktív játékosszám |
 | `ENABLE_SOCKET_REDIS_ADAPTER` | `false` | Több podos Socket.IO adapter |
 
 ## Több podos működés később
@@ -111,3 +111,8 @@ Ha később több replica kell:
 ## Jogi/szótár megjegyzés
 
 A játék nem tartalmaz beépített Bakos-szótár adatbázist. A szót és a valódi definíciót a körgazda kézzel írja be.
+
+
+## Build note
+
+The Dockerfile supports both builds with and without `package-lock.json`. If a lockfile exists it uses `npm ci`; otherwise it uses `npm install --omit=dev --no-audit --no-fund`.
