@@ -22,6 +22,7 @@ Többjátékos, session-alapú definíciós társasjáték Node.js + Express + S
 - kilépés
 - bármelyik játékos eltávolíthat másik játékost
 - böngészőalapú felolvasás
+- többnyelvű kezelőfelület: magyar / angol / német
 - Kubernetes Deployment + Service + Ingress
 
 ## Lokális futtatás Docker nélkül
@@ -84,6 +85,18 @@ A `landing-page-snippet.html` fájlban van egy egyszerű beilleszthető blokk:
   <a class="button" href="/bakos/">Új / belépés</a>
 </section>
 ```
+
+## Többnyelvű felület
+
+A felület nyelve a jobb felső nyelvválasztóval állítható. Jelenleg támogatott:
+
+- Magyar
+- English
+- Deutsch
+
+A választás böngészőnként `localStorage`-ben tárolódik. Csak a kezelőfelület fordul; a játékosok által beírt szavak, definíciók, kamu válaszok és nevek érintetlenek maradnak.
+
+A böngészőalapú felolvasás a kiválasztott felületi nyelvhez próbál hangot választani. Ha nincs ilyen hang, a böngésző alapértelmezett hangját használja.
 
 ## Fontos env változók
 

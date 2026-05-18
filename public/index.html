@@ -10,11 +10,21 @@
   <main class="app-shell">
     <header class="hero">
       <div>
-        <p class="eyebrow">Kubernetes társasjáték</p>
-        <h1>Bakos emlékverseny</h1>
-        <p class="lead">Kamu definíciók, valódi idegen szavak és sok nevetés — papírkeverés nélkül.</p>
+        <p class="eyebrow" id="heroEyebrow">Kubernetes társasjáték</p>
+        <h1 id="heroTitle">Bakos emlékverseny</h1>
+        <p class="lead" id="heroLead">Kamu definíciók, valódi idegen szavak és sok nevetés — papírkeverés nélkül.</p>
       </div>
-      <div class="connection-pill" id="connectionStatus">Kapcsolódás...</div>
+      <div class="top-tools">
+        <label class="language-picker" for="languageSelect">
+          <span id="languageLabel">Felület nyelve</span>
+          <select id="languageSelect" aria-label="Felület nyelve">
+            <option value="hu">Magyar</option>
+            <option value="en">English</option>
+            <option value="de">Deutsch</option>
+          </select>
+        </label>
+        <div class="connection-pill" id="connectionStatus">Kapcsolódás...</div>
+      </div>
     </header>
 
     <section id="alertBox" class="alert hidden"></section>
