@@ -429,12 +429,48 @@
     }
   };
 
+
+  Object.assign(TRANSLATIONS.hu, {
+    wordSuggestionsTitle: 'Szójavaslatok a körgazdának',
+    wordSuggestionsHelp: 'Válassz egy szót a listából, vagy írj be sajátot. A javaslatokat csak a körgazda látja.',
+    refreshSuggestions: 'Újabb 5 szó',
+    useSuggestion: 'Ezt választom',
+    loadingSuggestions: 'Szójavaslatok betöltése...',
+    noSuggestions: 'Most nem sikerült szójavaslatot betölteni.',
+    error_WORD_SUGGESTIONS_UNAVAILABLE: 'Most nem sikerült szójavaslatot adni. Próbáld újra.'
+  });
+
+  Object.assign(TRANSLATIONS.en, {
+    wordSuggestionsTitle: 'Word suggestions for the round leader',
+    wordSuggestionsHelp: 'Choose a word from the list or enter your own. Suggestions are visible only to the round leader.',
+    refreshSuggestions: 'New 5 words',
+    useSuggestion: 'Use this',
+    loadingSuggestions: 'Loading word suggestions...',
+    noSuggestions: 'Could not load word suggestions right now.',
+    error_WORD_SUGGESTIONS_UNAVAILABLE: 'Could not provide word suggestions right now. Try again.'
+  });
+
+  Object.assign(TRANSLATIONS.de, {
+    wordSuggestionsTitle: 'Wortvorschläge für die Rundenleitung',
+    wordSuggestionsHelp: 'Wähle ein Wort aus der Liste oder gib ein eigenes ein. Vorschläge sieht nur die Rundenleitung.',
+    refreshSuggestions: 'Neue 5 Wörter',
+    useSuggestion: 'Auswählen',
+    loadingSuggestions: 'Wortvorschläge werden geladen...',
+    noSuggestions: 'Wortvorschläge konnten gerade nicht geladen werden.',
+    error_WORD_SUGGESTIONS_UNAVAILABLE: 'Wortvorschläge konnten gerade nicht bereitgestellt werden. Versuche es erneut.'
+  });
+
   let currentLanguage = readLanguage();
   let session = null;
   let playerId = null;
   let pending = false;
   let socketConnected = false;
   let sessionExpiresAtMs = null;
+  const draftStore = new Map();
+  let wordSuggestions = [];
+  let wordSuggestionsRoundKey = '';
+  let wordSuggestionsLoading = false;
+
 
   function escapeHtml(value) {
     return String(value || '')
@@ -443,6 +479,69 @@
       .replaceAll('>', '&gt;')
       .replaceAll('"', '&quot;')
       .replaceAll("'", '&#039;');
+  }
+
+
+  function currentRoundKey() {
+    if (!session) return 'no-session';
+    return [
+      session.sessionId || '',
+      session.roundNumber || 0,
+      session.currentRoundLeaderId || '',
+      session.phase || ''
+    ].join(':');
+  }
+
+  function draftKey(fieldId) {
+    return `${currentRoundKey()}:${playerId || 'anonymous'}:${fieldId}`;
+  }
+
+  function captureDrafts() {
+    ['wordInput', 'realDefinitionInput', 'fakeDefinitionInput'].forEach((fieldId) => {
+      const element = document.getElementById(fieldId);
+      if (!element) return;
+      draftStore.set(draftKey(fieldId), element.value);
+    });
+  }
+
+  function restoreDrafts() {
+    ['wordInput', 'realDefinitionInput', 'fakeDefinitionInput'].forEach((fieldId) => {
+      const element = document.getElementById(fieldId);
+      if (!element) return;
+      const saved = draftStore.get(draftKey(fieldId));
+      if (typeof saved === 'string') element.value = saved;
+      element.addEventListener('input', () => {
+        draftStore.set(draftKey(fieldId), element.value);
+      });
+    });
+  }
+
+  function suggestionsKey() {
+    if (!session) return '';
+    return `${session.sessionId}:${session.roundNumber || 0}:${session.currentRoundLeaderId || ''}`;
+  }
+
+  function requestWordSuggestions(force = false) {
+    if (!session || !session.viewerIsLeader || session.phase !== 'WORD_ENTRY') return;
+    const key = suggestionsKey();
+    if (!force && wordSuggestionsRoundKey === key && (wordSuggestions.length > 0 || wordSuggestionsLoading)) return;
+
+    captureDrafts();
+    wordSuggestionsRoundKey = key;
+    wordSuggestions = [];
+    wordSuggestionsLoading = true;
+    render();
+
+    socket.emit('getWordSuggestions', { sessionId: session.sessionId, playerId }, (response) => {
+      wordSuggestionsLoading = false;
+      if (!response || !response.ok) {
+        wordSuggestions = [];
+        setAlert(errorMessage(response && response.code, response && response.message));
+      } else {
+        wordSuggestions = Array.isArray(response.suggestions) ? response.suggestions : [];
+      }
+      render();
+    });
   }
 
   function readLanguage() {
@@ -615,6 +714,7 @@
   }
 
   function render() {
+    captureDrafts();
     updateStaticTexts();
     if (!session) {
       renderHome();
@@ -628,6 +728,7 @@
         ${renderSidebar()}
       </div>
     `;
+    restoreDrafts();
     bindCommonActions();
     bindPhaseActions();
   }
@@ -767,6 +868,45 @@
     `;
   }
 
+
+  function renderWordSuggestions() {
+    const key = suggestionsKey();
+    const hasFreshSuggestions = wordSuggestionsRoundKey === key;
+    const suggestions = hasFreshSuggestions ? wordSuggestions : [];
+    const loading = wordSuggestionsLoading && hasFreshSuggestions;
+
+    if (!hasFreshSuggestions && !wordSuggestionsLoading) {
+      window.setTimeout(() => requestWordSuggestions(false), 0);
+    }
+
+    return `
+      <section class="card soft suggestions-card">
+        <div class="suggestions-header">
+          <div>
+            <h3>${t('wordSuggestionsTitle')}</h3>
+            <p class="muted small">${t('wordSuggestionsHelp')}</p>
+          </div>
+          <button class="secondary" id="refreshSuggestionsBtn" type="button">${t('refreshSuggestions')}</button>
+        </div>
+        ${loading || !hasFreshSuggestions ? `<p class="muted">${t('loadingSuggestions')}</p>` : ''}
+        ${hasFreshSuggestions && !loading && suggestions.length === 0 ? `<p class="muted">${t('noSuggestions')}</p>` : ''}
+        ${suggestions.length ? `
+          <div class="suggestion-list">
+            ${suggestions.map((suggestion, index) => `
+              <article class="suggestion-item">
+                <div>
+                  <strong>${escapeHtml(suggestion.word)}</strong>
+                  <p>${escapeHtml(suggestion.definition)}</p>
+                </div>
+                <button class="secondary use-suggestion-btn" type="button" data-suggestion-index="${index}">${t('useSuggestion')}</button>
+              </article>
+            `).join('')}
+          </div>
+        ` : ''}
+      </section>
+    `;
+  }
+
   function renderWordEntry() {
     const currentLeader = leader();
     if (session.viewerIsLeader) {
@@ -774,6 +914,7 @@
         <section class="card">
           <h2>${t('wordEntryLeaderTitle')}</h2>
           <p class="muted">${t('wordEntryLeaderHelp')}</p>
+          ${renderWordSuggestions()}
           <div class="form-row">
             <label for="wordInput"><strong>${t('word')}</strong></label>
             <input id="wordInput" maxlength="100" placeholder="${escapeHtml(t('wordPlaceholder'))}">
@@ -1013,6 +1154,7 @@
     const submitWordBtn = document.getElementById('submitWordBtn');
     if (submitWordBtn) {
       submitWordBtn.addEventListener('click', () => {
+        captureDrafts();
         emitAction('submitWordAndRealDefinition', {
           sessionId: session.sessionId,
           playerId,
@@ -1025,6 +1167,7 @@
     const submitFakeBtn = document.getElementById('submitFakeBtn');
     if (submitFakeBtn) {
       submitFakeBtn.addEventListener('click', () => {
+        captureDrafts();
         emitAction('submitFakeDefinition', {
           sessionId: session.sessionId,
           playerId,
@@ -1032,6 +1175,23 @@
         });
       });
     }
+
+    const refreshSuggestionsBtn = document.getElementById('refreshSuggestionsBtn');
+    if (refreshSuggestionsBtn) {
+      refreshSuggestionsBtn.addEventListener('click', () => requestWordSuggestions(true));
+    }
+
+    document.querySelectorAll('.use-suggestion-btn').forEach((button) => {
+      button.addEventListener('click', () => {
+        const suggestion = wordSuggestions[Number(button.dataset.suggestionIndex)];
+        if (!suggestion) return;
+        const wordInput = document.getElementById('wordInput');
+        const realDefinitionInput = document.getElementById('realDefinitionInput');
+        if (wordInput) wordInput.value = suggestion.word;
+        if (realDefinitionInput) realDefinitionInput.value = suggestion.definition;
+        captureDrafts();
+      });
+    });
 
     document.querySelectorAll('.vote-btn').forEach((button) => {
       button.addEventListener('click', () => {
@@ -1115,6 +1275,7 @@
   });
 
   socket.on('sessionUpdated', (nextSession) => {
+    captureDrafts();
     if (!nextSession.viewerActive) {
       clearLocalSession();
       session = null;

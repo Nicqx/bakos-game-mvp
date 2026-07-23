@@ -26,6 +26,60 @@ const PHASES = Object.freeze({
   PAUSED: 'PAUSED'
 });
 
+
+const WORD_SUGGESTIONS = Object.freeze([
+  { word: 'apória', definition: 'Látszólag feloldhatatlan gondolati nehézség, ellentmondás vagy filozófiai zsákutca.' },
+  { word: 'palimpszeszt', definition: 'Olyan kézirat vagy felület, amelyről a korábbi írást eltávolították, majd új szöveget írtak rá; átvitt értelemben egymásra rakódott jelentésrétegek összessége.' },
+  { word: 'szillogizmus', definition: 'Két előzményből és egy következtetésből álló logikai érvelési forma.' },
+  { word: 'heurisztika', definition: 'Gyakorlati, tapasztalati alapú problémamegoldó eljárás, amely gyors közelítő megoldást adhat.' },
+  { word: 'akcidencia', definition: 'Járulékos, nem lényegi tulajdonság; olyan ismertetőjegy, amely nem tartozik a dolog lényegéhez.' },
+  { word: 'anómia', definition: 'Normazavar vagy szabályvesztett társadalmi állapot, amikor a közös viselkedési keretek meggyengülnek.' },
+  { word: 'atavizmus', definition: 'Ősi, korábbi fejlődési fokra jellemző tulajdonság váratlan visszatérése.' },
+  { word: 'eufemizmus', definition: 'Kellemetlen, durva vagy kényes dolog enyhébb, szépítő megfogalmazása.' },
+  { word: 'oximoron', definition: 'Egymásnak látszólag ellentmondó szavakból álló kifejezés, például „beszédes csend”.' },
+  { word: 'metonímia', definition: 'Névcsere jellegű szóképfajta, amelyben egy fogalmat vele érintkezésben álló másik fogalom nevével jelölünk.' },
+  { word: 'szinekdoché', definition: 'Olyan szóképfajta, amelyben a rész jelöli az egészet, vagy az egész a részt.' },
+  { word: 'epigon', definition: 'Nagyobb alkotó vagy irányzat utánzója, aki kevés önálló eredetiséget mutat.' },
+  { word: 'idioszinkrázia', definition: 'Egyéni sajátosság, különös érzékenység vagy személyes ellenszenv valamivel szemben.' },
+  { word: 'interregnum', definition: 'Uralkodó, vezető vagy szabályos hatalmi rend nélküli átmeneti időszak.' },
+  { word: 'irenikus', definition: 'Békéltető, békességre törekvő, vitákat elsimítani kívánó magatartás vagy hangnem.' },
+  { word: 'eklektikus', definition: 'Különböző irányzatokból, stílusokból vagy rendszerekből válogató és azokat ötvöző.' },
+  { word: 'hermeneutika', definition: 'Szövegek, különösen vallási, jogi vagy filozófiai szövegek értelmezésének elmélete és módszertana.' },
+  { word: 'sztochasztikus', definition: 'Véletlenszerűséggel, valószínűségi folyamatokkal kapcsolatos.' },
+  { word: 'taxonómia', definition: 'Osztályozási rendszer; dolgok hierarchikus csoportokba rendezésének elve vagy gyakorlata.' },
+  { word: 'teleológia', definition: 'Célszerűséget vagy célra irányultságot feltételező magyarázat, illetve erről szóló tanítás.' },
+  { word: 'ontológia', definition: 'A létezéssel, a lét alapvető kategóriáival foglalkozó filozófiai terület.' },
+  { word: 'epifenomén', definition: 'Más jelenség melléktermékeként létrejövő kísérőjelenség, amelynek önálló oksági szerepe csekély vagy vitatott.' },
+  { word: 'enkulturáció', definition: 'Az a folyamat, amelynek során az egyén elsajátítja saját kultúrájának normáit, értékeit és viselkedésmintáit.' },
+  { word: 'diffúzió', definition: 'Szétterjedés, elterjedés; természettudományban részecskék keveredése koncentrációkülönbség hatására.' },
+  { word: 'liminális', definition: 'Átmeneti, küszöbhelyzetben lévő állapot, amikor valami két állapot vagy szerep között van.' },
+  { word: 'konnotáció', definition: 'Egy szó vagy kifejezés mellékjelentése, érzelmi vagy kulturális többletjelentése.' },
+  { word: 'denotáció', definition: 'Egy szó vagy kifejezés elsődleges, közvetlen tárgyi jelentése.' },
+  { word: 'ambivalencia', definition: 'Két ellentétes érzés, viszonyulás vagy értékelés egyidejű jelenléte.' },
+  { word: 'reziliencia', definition: 'Rugalmas ellenálló képesség; a nehézségekhez való alkalmazkodás és helyreállás képessége.' },
+  { word: 'aberráció', definition: 'Eltérés a szokásostól, szabályostól vagy elvárttól; torzulás.' },
+  { word: 'kompiláció', definition: 'Több forrásból összeállított mű vagy adatgyűjtemény; informatikában forráskód gépi kóddá alakítása.' },
+  { word: 'reminiszcencia', definition: 'Felidéződés, emlékszerű utalás vagy halvány emléknyom.' },
+  { word: 'pleonazmus', definition: 'Felesleges szóhalmozás, amikor a kifejezés ugyanazt a jelentést ismétli.' },
+  { word: 'paradigma', definition: 'Elfogadott minta, gondolkodási keret vagy tudományos megközelítésrendszer.' },
+  { word: 'diszkurzív', definition: 'Fogalmi, következtető, lépésről lépésre haladó gondolkodásra vagy kifejtésre épülő.' },
+  { word: 'rekurzív', definition: 'Önmagára visszahivatkozó, önmagát ismételten alkalmazó szerkezet vagy eljárás.' },
+  { word: 'anomália', definition: 'Rendellenesség, szabálytalanság vagy a várt mintától való eltérés.' },
+  { word: 'archetípus', definition: 'Ősi, alapvető mintakép vagy visszatérő jelképes alak, motívum.' },
+  { word: 'katakrézis', definition: 'Képzavar vagy szokatlan szóhasználat, amikor egy kifejezést eredeti jelentésétől eltérően, kényszerűen vagy hibásan alkalmaznak.' },
+  { word: 'hipotaxis', definition: 'Alárendelő mondatszerkesztés, amelyben a tagmondatok hierarchikus viszonyban állnak.' },
+  { word: 'parataxis', definition: 'Mellérendelő mondatszerkesztés, amelyben a tagmondatok egymás mellé helyezve kapcsolódnak.' },
+  { word: 'prolépszis', definition: 'Előrevetítés; későbbi esemény vagy gondolat előzetes említése.' },
+  { word: 'analógia', definition: 'Hasonlóságon alapuló megfelelés vagy következtetés két különböző dolog között.' },
+  { word: 'apokrif', definition: 'Kétes hitelességű, nem kanonikus vagy nem hivatalosan elfogadott irat, történet.' },
+  { word: 'katarzis', definition: 'Megtisztulásszerű lelki megrendülés vagy felszabadulás, különösen művészi élmény hatására.' },
+  { word: 'invenció', definition: 'Lelemény, találékonyság, alkotó ötlet vagy eredeti megoldás.' },
+  { word: 'szimultaneitás', definition: 'Egyidejűség; több esemény azonos időben történő fennállása vagy lejátszódása.' },
+  { word: 'prokrusztészi', definition: 'Erőszakosan egységesítő, merev keretek közé szorító eljárás vagy szemlélet.' },
+  { word: 'hiperbola', definition: 'Túlzásra épülő szóalakzat vagy retorikai eszköz.' },
+  { word: 'dilettáns', definition: 'Hozzá nem értő, felületesen művelő személy; eredetileg műkedvelőt is jelenthet.' }
+]);
+
 const app = express();
 const httpServer = http.createServer(app);
 const io = new Server(httpServer, {
@@ -482,6 +536,16 @@ function joinSocketToSession(socket, sessionId, playerId) {
   socket.data.playerId = playerId;
 }
 
+
+function getRandomWordSuggestions(count = 5) {
+  const pool = [...WORD_SUGGESTIONS];
+  for (let i = pool.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  return pool.slice(0, count);
+}
+
 async function withAction(socket, callback, action) {
   try {
     const result = await action();
@@ -579,6 +643,19 @@ io.on('connection', (socket) => {
     joinSocketToSession(socket, sessionId, playerId);
     await broadcastSession(sessionId);
     return { sessionId, playerId };
+  }));
+
+  socket.on('getWordSuggestions', (payload, callback) => withAction(socket, callback, async () => {
+    const session = await getSession(normalizeText(payload && payload.sessionId, 5));
+    requireSession(session);
+    const playerId = String((payload && payload.playerId) || '');
+    requireActivePlayer(session, playerId);
+    requirePhase(session, PHASES.WORD_ENTRY);
+    if (session.currentRoundLeaderId !== playerId) {
+      throw makePublicError('LEADER_ONLY', 'Ezt a műveletet csak az aktuális körgazda végezheti el.');
+    }
+
+    return { suggestions: getRandomWordSuggestions(5) };
   }));
 
   socket.on('startGame', (payload, callback) => withAction(socket, callback, async () => {

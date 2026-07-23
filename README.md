@@ -23,6 +23,8 @@ Többjátékos, session-alapú definíciós társasjáték Node.js + Express + S
 - bármelyik játékos eltávolíthat másik játékost
 - böngészőalapú felolvasás
 - többnyelvű kezelőfelület: magyar / angol / német
+- mobilos szövegmező-megőrzés automatikus frissítéseknél
+- körgazdának backendből adott 5 random szójavaslat valódi definícióval
 - Kubernetes Deployment + Service + Ingress
 
 ## Lokális futtatás Docker nélkül
@@ -98,6 +100,17 @@ A választás böngészőnként `localStorage`-ben tárolódik. Csak a kezelőfe
 
 A böngészőalapú felolvasás a kiválasztott felületi nyelvhez próbál hangot választani. Ha nincs ilyen hang, a böngésző alapértelmezett hangját használja.
 
+
+## Szójavaslatok
+
+A körgazda a szóbeviteli képernyőn 5 véletlen szójavaslatot kap valódi definícióval. A javaslatok a backendből érkeznek, ezért a többi játékos böngészője nem kapja meg előre a valódi definíciókat.
+
+A körgazda használhatja a `Újabb 5 szó` gombot, vagy bármikor írhat saját szót és saját definíciót.
+
+## Mobilos beírásvédelem
+
+A frontend a még be nem küldött mezők tartalmát lokálisan megőrzi. Így ha a Socket.IO állapotfrissítés újrarajzolja a felületet, a `Szó`, `Valódi definíció` és `Kamu definíció` mezők tartalma nem tűnik el gépelés közben.
+
 ## Fontos env változók
 
 | Név | Alapérték | Jelentés |
@@ -123,7 +136,7 @@ Ha később több replica kell:
 
 ## Jogi/szótár megjegyzés
 
-A játék nem tartalmaz beépített Bakos-szótár adatbázist. A szót és a valódi definíciót a körgazda kézzel írja be.
+A játék nem tartalmaz beépített Bakos-szótár adatbázist. A körgazda kézzel is megadhatja a szót és a valódi definíciót. Az MVP tartalmaz egy kisebb, általános idegen szavas szójavaslat-listát, amely nem Bakos-szótárból származik.
 
 
 ## Build note
