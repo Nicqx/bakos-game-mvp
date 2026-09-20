@@ -907,6 +907,10 @@ io.on('connection', (socket) => {
 app.disable('x-powered-by');
 app.use(express.json());
 
+app.get('/livez', (req, res) => {
+  res.json({ status: 'ok', app: 'bakos-game' });
+});
+
 app.get('/health', async (req, res) => {
   res.status(redisReady ? 200 : 503).json({
     status: redisReady ? 'ok' : 'redis-not-ready',
@@ -931,6 +935,10 @@ app.get(`${BASE_PATH}/health`, async (req, res) => {
     status: redisReady ? 'ok' : 'redis-not-ready',
     app: 'bakos-game'
   });
+});
+
+app.get(`${BASE_PATH}/livez`, (req, res) => {
+  res.json({ status: 'ok', app: 'bakos-game' });
 });
 
 async function start() {

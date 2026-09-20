@@ -13,6 +13,9 @@ RUN if [ -f package-lock.json ]; then \
 
 COPY . .
 
+RUN chown -R node:node /app
+USER 1000:1000
+
 ENV NODE_ENV=production
 ENV PORT=8105
 

@@ -3,4 +3,10 @@ npm-debug.log
 .git
 .gitignore
 *.tar
+*.tar.gz
+*.tgz
 .DS_Store
+.github
+scripts
+k8s
+README.md
