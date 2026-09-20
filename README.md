@@ -2,6 +2,45 @@
 
 Többjátékos, session-alapú definíciós társasjáték Node.js + Express + Socket.IO + Redis alapon.
 
+## NUC telepítés és frissítés
+
+Előfeltétel: Docker, Git, Bash, működő k3s, `redis-service` és ingress.
+
+```bash
+cd ~/codes/bakos-game-mvp
+git pull --ff-only
+KUBECTL='sudo k3s kubectl' ./update.sh --target nuc --dry-run
+KUBECTL='sudo k3s kubectl' ./update.sh --target nuc
+```
+
+Erőforrások: `bakos-game` Deployment, `bakos-game-service:8105`; publikus útvonal `/bakos/`, Socket.IO útvonal `/bakos/socket.io`. A frissítés előtti manifestek: `~/.local/state/nicqx-apps/nuc/bakos-game/`.
+
+Ellenőrzés:
+
+```bash
+sudo k3s kubectl get pod,service -n default -l app=bakos-game -o wide
+sudo k3s kubectl logs deployment/bakos-game -n default --tail=50
+curl -fsSI https://pmqxyz.hopto.org/bakos/ | head -n 1
+curl -fsS 'https://pmqxyz.hopto.org/bakos/socket.io/?EIO=4&transport=polling'
+```
+
+## Migráció, rollback és eltávolítás
+
+A konténer állapotmentes; a játékmenetek a közös Redisben vannak (3 órás TTL). Az új gépen előbb a `redis` repo eljárásával migráld az adatokat, majd futtasd ezt az update-et. Külön PVC nincs.
+
+```bash
+# ideiglenes leállítás / indítás
+sudo k3s kubectl scale deployment/bakos-game -n default --replicas=0
+sudo k3s kubectl scale deployment/bakos-game -n default --replicas=1
+
+# rollback a frissítéskor kiírt mentésből
+sudo k3s kubectl apply -f /teljes/ut/korabbi-manifest.yaml
+sudo k3s kubectl rollout status deployment/bakos-game -n default --timeout=180s
+
+# eltávolítás; Redis-adatot és ingress-szabályt nem töröl
+sudo k3s kubectl delete deployment/bakos-game service/bakos-game-service -n default
+```
+
 ## Funkciók
 
 - 5 számjegyű session kód
